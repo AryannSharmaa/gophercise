@@ -2,13 +2,18 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 func main() {
-	file, error := os.Open("problems.csv")
+	filename := flag.String("csv", "problems.csv", "a csv file in the format of problems.csv")
+	timelimit := flag.Int("t", 30, "timer for quiz in seconds")
+	flag.Parse()
+	file, error := os.Open(*filename)
 	if error != nil {
 		fmt.Println(error)
 	}
@@ -21,18 +26,30 @@ func main() {
 
 	correct, incorrect := 0, 0
 	fmt.Println("Write correct answers")
+	timer := time.NewTimer(time.Duration(*timelimit) * time.Second)
 	for _, v := range rec {
+		fmt.Print(v[0], "=")
+		answerCh := make(chan int)
 		result, error := (strconv.Atoi(v[1]))
 		if error != nil {
 			fmt.Println(error)
 		}
-		fmt.Print(v[0], "=")
-		var answer int
-		fmt.Scanln(&answer)
-		if answer == result {
-			correct++
-		} else {
-			incorrect++
+
+		go func() {
+			var answer int
+			fmt.Scanln(&answer)
+			answerCh <- answer
+		}()
+		select {
+		case <-timer.C:
+			fmt.Printf("\nTotal: %v correct: %v, incorrect: %v\n", correct+incorrect, correct, incorrect)
+			return
+		case answer := <-answerCh:
+			if answer == result {
+				correct++
+			} else {
+				incorrect++
+			}
 		}
 	}
 	fmt.Printf("Total: %v correct: %v, incorrect: %v\n", correct+incorrect, correct, incorrect)
