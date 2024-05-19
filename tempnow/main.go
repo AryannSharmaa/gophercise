@@ -52,5 +52,5 @@ func main() {
 		panic(err)
 	}
 	location, current := weather.Location, weather.Current
-	fmt.Printf("%s,%s: %.0f C, %s\nAQI:%.0f\n", location.Name, location.Country, current.Tempc, current.Condition.Text, current.Airquality.Pm10)
+	fmt.Printf("%s, %s:%.0fC, %s\nAQI:%.0f\n", location.Name, location.Country, current.Tempc, current.Condition.Text, current.Airquality.Pm10)
 }
